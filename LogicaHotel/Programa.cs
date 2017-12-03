@@ -31,6 +31,7 @@ namespace LogicaHotel
             string caminhoArqConf = @Path.Combine(caminhoDir, arqConfNome);
             string caminhoArqDado = @Path.Combine(caminhoDir, arqDadoNome);
 
+
             Stream StrmConf;
             Stream StrmDado;
 
