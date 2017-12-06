@@ -99,7 +99,7 @@ namespace LogicaHotel
                 // Corpo do arquivo de dados
                 DadoStruct = new
                 {
-                    Clientes = new { }
+                    Clientes = new ArrayList()
                 };
 
                 // Gerando arquivos padrões
@@ -210,6 +210,36 @@ namespace LogicaHotel
 
         }
 
+        //Faz o Check-in do cliente
+        private void FazerCheckIn()
+        {
+            Stream StrmDado = File.Open(this.caminhoArqDado, FileMode.Open);
+            StreamReader StrmRd;
+            StreamWriter StrmWr;
+
+            dynamic DadoObj;
+
+            string NomeCliente;
+            string DataCheckIn;
+
+            Console.Write("Nome do Cliente: ");
+            NomeCliente = Console.ReadLine();
+
+            Console.Write("Data de CheckIn: ");
+            DataCheckIn = Console.ReadLine();
+
+
+            StrmRd = new StreamReader(StrmDado);
+
+            DadoObj = JsonConvert.DeserializeObject(StrmRd.ReadToEnd());
+
+            Console.WriteLine(DadoObj);
+
+            StrmRd.Close();
+            StrmDado.Close();
+
+        }
+
         public static void Main(string[] args)
         {
             Programa Prog = new Programa();
@@ -224,7 +254,8 @@ namespace LogicaHotel
             // Menu();
 
             Prog.ConfiguraPrograma();
-            Prog.CriaServico();
+            // Prog.CriaServico();
+            Prog.FazerCheckIn();
 
             Console.ReadKey();
         }
