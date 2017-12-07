@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 
@@ -18,6 +17,8 @@ namespace LogicaHotel
         private string caminhoDir;
         private string caminhoArqConf;
         private string caminhoArqDado;
+
+        private int timeSleep = 1300;
 
         /*
          * Funções para trabalhar com a data
@@ -131,16 +132,6 @@ namespace LogicaHotel
 
         }
 
-        // Menu Da Aplicação
-        private static void Menu()
-        {
-            string nome = "";
-
-            nome = Console.ReadLine();
-
-            Console.WriteLine(nome);
-        }
-
         // Faz a configuração inicial do programa ou reseta
         private void ConfiguraPrograma(bool clear = false)
         {
@@ -157,8 +148,6 @@ namespace LogicaHotel
             string NomeHotel;
             int QuantidadeQuartos;
             float PrecoDiaria;
-            
-            
 
             // Verifica se o diretório existe, se não cria um
             if (!Directory.Exists(caminhoDir)) Directory.CreateDirectory(caminhoDir);
@@ -180,11 +169,22 @@ namespace LogicaHotel
             StrmConf = File.Open(caminhoArqConf, FileMode.Open);
             StrmDado = File.Open(caminhoArqDado, FileMode.Open);
 
+            if (clear)
+            {
+                StrmConf.Close();
+                StrmDado.Close();
+                StrmConf = File.Open(caminhoArqConf, FileMode.Create);
+                StrmDado = File.Open(caminhoArqDado, FileMode.Create);
+            }
+
             Leitor = new StreamReader(StrmConf);
 
             // Verifica se o Arquivo está vazio
             if (Leitor.ReadToEnd() == "" || clear)
-            {   
+            {
+                Console.Clear();
+                Console.WriteLine("###### CONFIGURAÇÃO INICIAL ######\n");
+
                 Console.Write("Nome do Hotel: ");
                 NomeHotel = Console.ReadLine();
 
@@ -217,6 +217,14 @@ namespace LogicaHotel
                 Escritor = new StreamWriter(StrmDado);
                 Escritor.Write( JsonConvert.SerializeObject(DadoStruct) );
                 Escritor.Close();
+
+                Console.WriteLine("Arquivo Criados com Sucesso!");
+                Console.WriteLine(caminhoDir);
+                Console.WriteLine(caminhoArqConf);
+                Console.WriteLine(caminhoArqDado);
+
+                Thread.Sleep(timeSleep);
+                Console.Clear();
             }
 
             Leitor.Close();
@@ -252,6 +260,7 @@ namespace LogicaHotel
             Servico = ConteudoConf.Servico;
 
             Console.Clear();
+            Console.WriteLine("###### ADICIONAR NOVO SERVIÇO ######\n");
 
             if (Servico.ToString() != "[]")
             {
@@ -265,15 +274,15 @@ namespace LogicaHotel
             {
                 if (ListaServico.Count > 0)
                 {
-                    Console.WriteLine("-----SERVIÇOS----|");
+                    Console.WriteLine("----- SERVIÇOS ----|");
                     foreach (dynamic Dado in ListaServico)
                     {
-                        Console.WriteLine("-----------------");
+                        Console.WriteLine("-------------------");
                         Console.WriteLine(" NOME: " + Dado.Nome);
                         Console.WriteLine(" PREÇO: R$" + Dado.Preco);
-                        Console.WriteLine("-----------------");
+                        Console.WriteLine("-------------------");
                     }
-                    Console.WriteLine("----------------|\n");
+                    Console.WriteLine("-----------------|\n");
                 }
 
                 Console.Write("Nome do Serviço: ");
@@ -286,7 +295,9 @@ namespace LogicaHotel
                 Console.Write("Deseja cadastrar um serviço? (S/N): ");
                 AuxSair = Console.ReadLine();
                 if (AuxSair == "N" || AuxSair == "n") CadastraServico = false;
+
                 Console.Clear();
+                Console.WriteLine("###### ADICIONAR NOVO SERVIÇO ######\n");
 
             } while (CadastraServico);
 
@@ -312,8 +323,8 @@ namespace LogicaHotel
             StrmConf.Close();
 
             Console.WriteLine("Cadastrado com Sucesso!");
-            Thread.Sleep(1500);
-            Console.Clear();
+            Thread.Sleep(timeSleep);
+            Menu(4);
 
         }
 
@@ -378,6 +389,9 @@ namespace LogicaHotel
             string QuantidadeQuartosStr = PegaConfigHotel().QuantidadeQuartos;
             float PrecoDiaria = PegaConfigHotel().PrecoDiaria;
 
+            Console.Clear();
+            Console.WriteLine("###### FAZER CHECK-IN ######\n");
+
             StrmRd = new StreamReader(StrmDado);
             DadoObj = JsonConvert.DeserializeObject(StrmRd.ReadToEnd());
 
@@ -415,11 +429,15 @@ namespace LogicaHotel
 
                 StrmWr.Close();
                 StrmDado.Close();
-
+                Console.WriteLine("Check-In Reaalizado com Sucesso!");
+                Thread.Sleep(timeSleep);
+                Menu();
             }
             else
             {
-                Console.WriteLine("Não há mais vagas");
+                Console.WriteLine("Não há mais vagas!");
+                Thread.Sleep(timeSleep);
+                Menu();
             }
 
 
@@ -451,7 +469,13 @@ namespace LogicaHotel
             Stream StrmDado;
             StreamWriter StrmWr;
 
+            Stream StrmCheckOut;
+            string caminhoCheckOutFile;
+
             string saidaCheckOut;
+
+            Console.Clear();
+            Console.WriteLine("###### FAZER CHECK-OUT ######\n");
 
             if (ObjDado.Clientes.Count > 0)
             {
@@ -471,14 +495,14 @@ namespace LogicaHotel
                 {
                     UsuarioSelecionado = int.Parse(Console.ReadLine());
                     UsuarioValido = !Array.Exists(IdClientes.ToArray(), b => b == UsuarioSelecionado);
-                    if(UsuarioValido) Console.Write("Usuário inválido, selecione outro (ID): ");
+                    if(UsuarioValido) Console.Write("\nUsuário inválido, selecione outro (ID): ");
                 } while (UsuarioValido);
 
                 dataCheckIn = ObjDado.Clientes[UsuarioSelecionado - 1].CheckIn;
                 precoDiariaStr = ObjDado.Clientes[UsuarioSelecionado - 1].Servicos[0].Preco;
                 nomeCliente = ObjDado.Clientes[UsuarioSelecionado - 1].Nome;
                 
-                Console.WriteLine("Cliente Selecionado: {0}\n", nomeCliente);
+                Console.WriteLine("\nCliente Selecionado: {0}\n", nomeCliente);
 
                 Console.Write("Data de CheckOut (DD/MM/AAAA): ");
                 dataCheckOut = Console.ReadLine();
@@ -492,6 +516,8 @@ namespace LogicaHotel
                 servicosUt.RemoveAt(0);
 
                 Console.Clear();
+                Console.WriteLine("###### FAZER CHECK-OUT ######\n");
+
                 saidaCheckOut = "---------------------- " + ObjConf.NomeHotel + " ----------------------\n";
                 saidaCheckOut += "Cliente: " + nomeCliente + "\n";
                 saidaCheckOut += "Data CheckIn: " + dataCheckIn + " | Data CheckOut: " + dataCheckOut + "\n";
@@ -519,14 +545,14 @@ namespace LogicaHotel
                 }
                 totalGasto += diasDecorridos * float.Parse(precoDiariaStr);
                 
-                saidaCheckOut += "Total: " + totalGasto + " ---------------------------------\n\n";
+                saidaCheckOut += "Total: R$" + totalGasto + " ---------------------------------\n\n";
                 
 
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine(saidaCheckOut);
                 Console.ForegroundColor = ConsoleColor.Green;
 
-                Console.Write("Deseja Concluir o CheckOut de {0} (S/N): ", nomeCliente);
+                Console.Write("Deseja Concluir o Check-Out de {0} (S/N): ", nomeCliente);
                 AuxEnd = Console.ReadLine();
 
                 if (AuxEnd == "S" || AuxEnd == "s")
@@ -542,23 +568,122 @@ namespace LogicaHotel
 
                     StrmWr.Close();
                     StrmDado.Close();
-                    Console.WriteLine("CheckOut Concluido!");
-                    Thread.Sleep(1500);
-                    Console.Clear();
+
+                    caminhoCheckOutFile = Path.GetFullPath(nomeCliente + "-checkout.txt");
+
+                    StrmCheckOut = File.Open(caminhoCheckOutFile, FileMode.CreateNew);
+                    StrmWr = new StreamWriter(StrmCheckOut);
+                    StrmWr.WriteAsync(saidaCheckOut);
+
+                    StrmWr.Close();
+                    StrmCheckOut.Close();
+
+                    Console.WriteLine("Check-Out Concluido!");
+                    Console.WriteLine("Arquivo de Nota: {0}", caminhoCheckOutFile);
+                    Thread.Sleep(timeSleep);
+                    Menu();
                 }
                 else
                 {
-                    Console.WriteLine("Saiu Checkout");
+                    Menu();
                 }
 
             }
             else
             {
-                Console.WriteLine("Não há clientes para fazer CheckOut");
+                Console.WriteLine("Não há clientes para fazer Check-Out!");
+                Thread.Sleep(timeSleep);
+                Menu();
             }
         }
 
-        public static void Main(string[] args)
+        // Menu Da Aplicação
+        private void Menu(int item = 0)
+        {
+            dynamic ObjConf = PegaConfigHotel();
+            dynamic ObjDado = PegaClientesHotel();
+
+            string QtdQuartoStr = ObjConf.QuantidadeQuartos;
+            string QtdClienteStr = ObjDado.Clientes.Count.ToString();
+
+            int QuartosVagos = int.Parse(QtdQuartoStr) - int.Parse(QtdClienteStr);
+            string NomeHotel = ObjConf.NomeHotel;
+
+            int teclaMenu;
+
+            if (item == 0)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Hotel: {0}", NomeHotel);
+                Console.WriteLine("Quartos Vagos: {0}", QuartosVagos);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("-----------------------");
+                Console.WriteLine("###### MENU ######\n");
+
+                Console.WriteLine("1 - FAZER CHECK-IN");
+                Console.WriteLine("2 - FAZER CHECK-OUT");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("3 - ADICIONAR SERVIÇO (X)");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("4 - CONFIGURAÇÕES");
+                Console.WriteLine("5 - SAIR");
+                Console.Write(" > ");
+
+                teclaMenu = int.Parse(Console.ReadLine());
+            }
+            else
+            {
+                teclaMenu = item;
+            }
+
+            switch (teclaMenu)
+            {
+                case 1:
+                    FazerCheckIn();
+                    break;
+                case 2:
+                    FazerCheckOut();
+                    break;
+                case 3:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("\nFunção Indisponível no Momento!");
+                    Thread.Sleep(timeSleep);
+                    Menu();
+                    break;
+                case 4:
+                    Console.Clear();
+                    Console.WriteLine("###### MENU ######\n");
+                    Console.WriteLine("1 - CADASTRAR SERVIÇO");
+                    Console.WriteLine("2 - LIMPAR PROGRAMA");
+                    Console.WriteLine("3 - VOLTAR");
+                    Console.Write(" > ");
+
+                    teclaMenu = int.Parse(Console.ReadLine());
+                    Console.Clear();
+
+                    switch (teclaMenu)
+                    {
+                        case 1:
+                            CriaServico();
+                            break;
+                        case 2:
+                            ConfiguraPrograma(true);
+                            Menu();
+                            break;
+                        default:
+                            Menu();
+                            break;
+                    }
+                    break;
+                default:
+                    Environment.Exit(1);
+                    break;
+            }
+
+        }
+
+        public static void Main()
         {
             Programa Prog = new Programa();
 
@@ -569,10 +694,10 @@ namespace LogicaHotel
             Prog.caminhoArqConf = Path.Combine(Prog.caminhoDir, Prog.arqConfNome);
             Prog.caminhoArqDado = Path.Combine(Prog.caminhoDir, Prog.arqDadoNome);
 
-            // Menu();
 
             Prog.ConfiguraPrograma();
-            Prog.FazerCheckOut();
+            Prog.Menu();
+            // Prog.FazerCheckOut();
             // Prog.CriaServico();
             // Prog.FazerCheckIn();
 
